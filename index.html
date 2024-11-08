@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Comprovante Pix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f2f2f2;
+        }
+        .container {
+            width: 350px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button {
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <!-- jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Gerador de Comprovante Pix</h2>
+        
+        <label for="payer-name">Nome do Pagador:</label>
+        <input type="text" id="payer-name" placeholder="Nome do Pagador" required>
+
+        <label for="payer-bank">Banco do Pagador:</label>
+        <select id="payer-bank">
+            <option value="Banco do Brasil">Banco do Brasil</option>
+            <option value="Bradesco">Bradesco</option>
+            <option value="Caixa Econômica Federal">Caixa Econômica Federal</option>
+            <option value="Itaú">Itaú</option>
+            <option value="Santander">Santander</option>
+            <option value="Nubank">Nubank</option>
+            <option value="Banco Inter">Banco Inter</option>
+            <option value="C6 Bank">C6 Bank</option>
+            <option value="PicPay">PicPay</option>
+            <option value="Banco Original">Banco Original</option>
+            <option value="BTG Pactual">BTG Pactual</option>
+        </select>
+
+        <label for="payer-cpf">CPF do Pagador:</label>
+        <input type="text" id="payer-cpf" placeholder="CPF do Pagador" required>
+
+        <label for="receiver-name">Nome do Destinatário:</label>
+        <input type="text" id="receiver-name" placeholder="Nome do Destinatário" required>
+
+        <label for="receiver-bank">Banco do Destinatário:</label>
+        <select id="receiver-bank">
+            <option value="Banco do Brasil">Banco do Brasil</option>
+            <option value="Bradesco">Bradesco</option>
+            <option value="Caixa Econômica Federal">Caixa Econômica Federal</option>
+            <option value="Itaú">Itaú</option>
+            <option value="Santander">Santander</option>
+            <option value="Nubank">Nubank</option>
+            <option value="Banco Inter">Banco Inter</option>
+            <option value="C6 Bank">C6 Bank</option>
+            <option value="PicPay">PicPay</option>
+            <option value="Banco Original">Banco Original</option>
+            <option value="BTG Pactual">BTG Pactual</option>
+        </select>
+
+        <label for="receiver-cpf">CPF do Destinatário:</label>
+        <input type="text" id="receiver-cpf" placeholder="CPF do Destinatário" required>
+
+        <label for="transfer-value">Valor da Transferência (R$):</label>
+        <input type="number" id="transfer-value" placeholder="Ex: 50000,00" max="100000.00" step="0.01" required>
+
+        <button class="button" onclick="generatePDF()">Gerar Comprovante em PDF</button>
+    </div>
+
+    <script>
+        function formatCurrency(value) {
+            return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Coletar os dados editáveis
+            const payerName = document.getElementById("payer-name").value || "Marcos Pereira";
+            const payerCPF = document.getElementById("payer-cpf").value || "***.241.837-**";
+            const payerBank = document.getElementById("payer-bank").value;
+            const receiverName = document.getElementById("receiver-name").value || "Jaquison Santos da Silva";
+            const receiverCPF = document.getElementById("receiver-cpf").value || "***.421.278-**";
+            const receiverBank = document.getElementById("receiver-bank").value;
+            const transactionValue = parseFloat(document.getElementById("transfer-value").value || "10.00").toFixed(2);
+            const formattedValue = formatCurrency(parseFloat(transactionValue));
+            const transactionId = generateTransactionId();
+
+            // Verificar se os campos obrigatórios estão preenchidos
+            if (!payerName || !payerCPF || !payerBank || !receiverName || !receiverCPF || !receiverBank || !transactionValue) {
+                alert("Por favor, preencha todos os campos obrigatórios.");
+                return;
+            }
+
+            // Informações automáticas
+            const currentDate = new Date();
+            const date = currentDate.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' });
+            const time = currentDate.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const identifier = "sjy5549276g9e4486e62862862deca1";
+
+            // Estilo e layout melhorado do PDF
+            doc.setFont("helvetica");
+            doc.setFontSize(16);
+            doc.text("Comprovante de Pagamento Pix", 105, 20, null, null, "center");
+
+            doc.setFontSize(12);
+            doc.setTextColor(100);
+            doc.text(`${date} - ${time}`, 105, 30, null, null, "center");
+
+            doc.setDrawColor(200);
+            doc.line(15, 35, 195, 35);
+
+            doc.setFontSize(14);
+            doc.setTextColor(0);
+            doc.text("Detalhes da Transação", 15, 45);
+
+            doc.setFontSize(12);
+            doc.setTextColor(50);
+
+            doc.text("Valor:", 15, 55);
+            doc.setFont("helvetica", "bold");
+            doc.text(formattedValue, 50, 55);
+            doc.setFont("helvetica", "normal");
+
+            doc.text("Destinatário:", 15, 65);
+            doc.text(receiverName, 50, 65);
+            doc.text(`CPF/CNPJ: ${receiverCPF}`, 50, 70);
+            doc.text(receiverBank, 50, 75);
+
+            doc.text("Pagador:", 15, 85);
+            doc.text(payerName, 50, 85);
+            doc.text(`CPF/CNPJ: ${payerCPF}`, 50, 90);
+            doc.text(payerBank, 50, 95);
+
+            doc.text("ID da Transação:", 15, 105);
+            doc.text(transactionId, 50, 105);
+
+            doc.text("Identificador:", 15, 115);
+            doc.text(identifier, 50, 115);
+
+            doc.line(15, 125, 195, 125);
+
+            // Gerar e baixar o PDF
+            doc.save(`comprovante_pix_${transactionId}.pdf`);
+        }
+
+        function generateTransactionId() {
+            return "WUh29643120241107" + Math.random().toString(36).substr(2, 6) + "nBTKROOciwd";
+        }
+    </script>
+</body>
+</html>
